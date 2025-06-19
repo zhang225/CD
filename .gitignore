@@ -1,4 +1,48 @@
-*.tmp
-.vscode/
-node_modules/
+#include <Servo.h>
 
+// 建立伺服馬達物件
+Servo cdServo;
+
+// 定義連接腳位
+const int SERVO_PIN = 9;    // 伺服馬達接在 D9
+const int BUTTON_PIN = 2;   // 按鈕接在 D2
+
+// 馬達控制變數
+const int MIN_ANGLE = 0;    // 最小角度
+const int MAX_ANGLE = 180;  // 最大角度
+const int STEP = 5;         // 每次轉動角度
+int currentAngle = MIN_ANGLE;
+bool isRotating = false;
+
+void setup() {
+  // 初始化序列通訊，用於除錯
+  Serial.begin(9600);
+  
+  // 設定伺服馬達
+  cdServo.attach(SERVO_PIN);
+  cdServo.write(MIN_ANGLE);
+  
+  // 設定按鈕為輸入，啟用內建上拉電阻
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  
+  Serial.println("系統就緒");
+}
+
+void loop() {
+  // 檢查按鈕狀態
+  if (digitalRead(BUTTON_PIN) == LOW) {
+    isRotating = !isRotating;  // 切換旋轉狀態
+    delay(200);  // 防彈跳延遲
+  }
+  
+  // 控制旋轉
+  if (isRotating) {
+    currentAngle += STEP;
+    if (currentAngle > MAX_ANGLE) {
+      currentAngle = MIN_ANGLE;
+    }
+    cdServo.write(currentAngle);
+    Serial.println("當前角度: " + String(currentAngle));
+    delay(50);  // 控制轉速
+  }
+}
